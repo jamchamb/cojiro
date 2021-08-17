@@ -1,0 +1,12 @@
+*.asc
+*.bin
+*.blif
+*.rpt
+*.nplog
+*.yslog
+top*.json
+
+venv/
+*.pyc
+
+logs/
