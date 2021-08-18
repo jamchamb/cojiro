@@ -17,11 +17,20 @@ Build and flash the basic N64 controller design:
 $ make prog
 ```
 
-Build and program the Snap Station design:
+Build and flash the Snap Station design:
 
 ```sh
 $ make prog_snap
 ```
+
+### Hardware setup
+
+For the Nintendo 64 cable setup see <https://jamchamb.net/2021/08/17/snap-station.html>.
+
+- PMOD1A is used for simple state or debug output on the seven-segment display module
+- PMOD1B is used for the JoyBus I/O (pin P1B1) and ground
+- PMOD2 is used for the button module
+- USB is used for UART (baud rate is 1500000, use `software/uart_sniff.py` for sniffing traffic)
 
 ## Controller
 
