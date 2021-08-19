@@ -5,9 +5,13 @@ FPGA design for Nintendo JoyBus devices
 
 ## Setup
 
-Clone submodules first:
+Install the IceStorm toolchain: see <http://bygone.clairexen.net/icestorm/>
+
+Clone repository and submodules:
 
 ```sh
+$ git clone https://github.com/jamchamb/cojiro.git
+$ cd cojiro
 $ git submodulate update --init
 ```
 
