@@ -35,6 +35,7 @@ For the Nintendo 64 cable setup see <https://jamchamb.net/2021/08/17/snap-statio
 - PMOD1B is used for the JoyBus I/O (pin P1B1) and ground
 - PMOD2 is used for the button module
 - USB is used for UART (baud rate is 1500000, use `software/uart_sniff.py` for sniffing traffic)
+- uButton is used to reset the overall state of the device
 
 ## Controller
 
@@ -48,7 +49,8 @@ Using the SPI flash to persist the pak data is a to-do.
 Mimics the Snap Station protocol used by Pokemon Snap and Pokemon Stadium.
 Press button 1 to advance the state of the Snap Station.
 
-1. After entering the main menu or Gallery menu, press the button once to enable the station.
-2. Press the Print button. After the "Now Saving..." message appears, reset the console.
-3. Press the button to advance through the photo display until all 16 photos are displayed.
+1. After entering the main menu or Gallery menu, press BTN1 once to enable the station.
+2. Press Print in the Gallery menu.
+3. After the "Now Saving..." message appears, reset the console.
+4. Press BTN1 to advance through the photo display until all 16 photos are displayed.
 

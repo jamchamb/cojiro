@@ -51,12 +51,13 @@ module top (
    //reg [7:0]   pad_status = 8'h 01;
 
    // Snap Station state
-   localparam [1:0]
+   localparam [2:0]
      SNAP_WAIT = 0,
      SNAP_GALLERY = 1,
      SNAP_SAVED = 2,
-     SNAP_PRINTING = 3;
-   reg [1:0]   snap_state = SNAP_WAIT;
+     SNAP_PRINTING = 3,
+     SNAP_FINISHED = 4;
+   reg [2:0]   snap_state = SNAP_WAIT;
    reg [7:0]   snap_print_cmd = 8'h 00;
    reg         btn1_prev;
    reg         btn1_cur;
@@ -331,9 +332,18 @@ module top (
       else if (state == STATE_PAK_READ) begin
          case (cpak_addr)
            16'h 8000: begin
-              // typically would fill every byte with 85,
+              // typically would fill every byte with 85/FE,
               // but only the last one is checked
-              tx_bytes[31] <= 8'h 85;
+              if (snap_state == SNAP_FINISHED) begin
+                 // After display finishes and screen goes blank, wait until
+                 // the console is reset again to reset the state.
+                 // Otherwise accidentally pressing BTN1 at the blank screen and resetting
+                 // goes directly back into photo display mode.
+                 snap_state <= SNAP_WAIT;
+                 tx_bytes[31] <= 8'h FE;
+              end else begin
+                 tx_bytes[31] <= 8'h 85;
+              end
            end
            16'h C000: begin
               // TODO assign first 31 bytes to 00
@@ -361,7 +371,7 @@ module top (
 
               case (rx_bytes[34])
                 8'h 5A: snap_state <= SNAP_SAVED;
-                8'h 04: snap_state <= SNAP_WAIT;
+                8'h 04: snap_state <= SNAP_FINISHED;
               endcase
            end
          endcase // case (cpak_addr)
