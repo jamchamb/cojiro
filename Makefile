@@ -2,7 +2,6 @@
 
 PROJ = top
 ADD_SRC = seven_seg.v n64_sender.v n64_receiver.v datacrc_8wide.v mempak.v osdvu/uart.v
-DATA_DEPS = data/mempak.mem
 FPGA_PKG = sg48
 FPGA_TYPE = up5k
 FREQ = 12
@@ -13,7 +12,7 @@ top_snap: top_snapstation.rpt top_snapstation.bin
 all: top_pad top_snap
 
 
-%.json: %.v $(ADD_SRC) $(DATA_DEPS)
+%.json: %.v $(ADD_SRC)
 	yosys -ql "$(basename $@).yslog" -p 'synth_ice40 -top top -json $@' $< $(ADD_SRC)
 
 %.asc: %.json ${PCF}
