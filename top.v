@@ -29,16 +29,15 @@ module top (
      STATE_RESET = 0,
      STATE_RX = 1,
      STATE_PARSE = 2,
-     STATE_PAK_READ1 = 3,
-     STATE_PAK_READ2 = 4,
-     STATE_PAK_WRITE1 = 5,
-     STATE_DATA_CRC1 = 6,
-     STATE_DATA_CRC2 = 7,
-     STATE_TX = 8,
-     STATE_FORWARD_LEN = 9,
-     STATE_FORWARD = 10,
-     STATE_FORWARD_RESPONSE = 11,
-     STATE_PAK_INIT = 12;
+     STATE_PAK_READ = 3,
+     STATE_PAK_WRITE = 4,
+     STATE_DATA_CRC1 = 5,
+     STATE_DATA_CRC2 = 6,
+     STATE_TX = 7,
+     STATE_FORWARD_LEN = 8,
+     STATE_FORWARD = 9,
+     STATE_FORWARD_RESPONSE = 10,
+     STATE_PAK_INIT = 11;
    reg [3:0] state = STATE_PAK_INIT;
    reg       error_flag = 0;
 
@@ -322,7 +321,7 @@ module top (
 
               // return 32 bytes of data and 1 byte CRC
               tx_n_bytes <= 33;
-              state <= STATE_PAK_READ1;
+              state <= STATE_PAK_READ;
            end
            8'h 03: begin
               // write data to pak
@@ -338,7 +337,7 @@ module top (
 
               // will set 8 bit CRC response below
               tx_n_bytes <= 1;
-              state <= STATE_PAK_WRITE1;
+              state <= STATE_PAK_WRITE;
            end
            default: begin
               // TODO: wait and display unknown command for a few seconds?
@@ -349,7 +348,7 @@ module top (
          endcase // case (command)
       end // if (state == STATE_PARSE)
 
-      else if (state == STATE_PAK_READ1) begin
+      else if (state == STATE_PAK_READ) begin
          if (pak_read_en) begin
             // delay cycle for newly read address to propagate to output
             pak_read_en <= 0;
@@ -369,7 +368,7 @@ module top (
          end
       end
 
-      else if (state == STATE_PAK_WRITE1) begin
+      else if (state == STATE_PAK_WRITE) begin
          if (cpak_addr == 16'h 8000) begin
             // it writes 00s here during format
             state <= STATE_DATA_CRC1;
