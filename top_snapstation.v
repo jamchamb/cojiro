@@ -118,6 +118,9 @@ module top (
    // General TX/RX buffer index
    reg [5:0] buf_i = 0;
 
+   // fill loop iterator
+   integer   fill_i;
+
    // Data CRC for 32 byte read/write buffers
    reg [7:0] datacrc_in = 8'h 00;
    reg [7:0]   datacrc_out;
@@ -332,21 +335,28 @@ module top (
       else if (state == STATE_PAK_READ) begin
          case (cpak_addr)
            16'h 8000: begin
-              // typically would fill every byte with 85/FE,
-              // but only the last one is checked
               if (snap_state == SNAP_FINISHED) begin
                  // After display finishes and screen goes blank, wait until
                  // the console is reset again to reset the state.
                  // Otherwise accidentally pressing BTN1 at the blank screen and resetting
                  // goes directly back into photo display mode.
                  snap_state <= SNAP_WAIT;
-                 tx_bytes[31] <= 8'h FE;
-              end else begin
-                 tx_bytes[31] <= 8'h 85;
+
+                 for (fill_i = 0; fill_i < 32; fill_i = fill_i + 1) begin
+                    tx_bytes[fill_i] <= 8'h FE;
+                 end
+              end else begin // if (snap_state == SNAP_FINISHED)
+                 for (fill_i = 0; fill_i < 32; fill_i = fill_i + 1) begin
+                    tx_bytes[fill_i] <= 8'h 85;
+                 end
               end
            end
            16'h C000: begin
-              // TODO assign first 31 bytes to 00
+              // assign first 31 bytes to 00
+              for (fill_i = 0; fill_i < 31; fill_i = fill_i + 1) begin
+                 tx_bytes[fill_i] <= 8'h 00;
+              end
+
               // Test: press BTN1 to end busy loops
               if (snap_state == SNAP_SAVED) begin
                  tx_bytes[31] <= 8'h 08;
