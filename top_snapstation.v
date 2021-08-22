@@ -62,9 +62,12 @@ module top (
    reg         btn1_prev;
    reg         btn1_cur;
 
+   // expecting at most 35 bytes (1 cmd byte + 34 optional data bytes)
+   localparam MAX_RX_BYTES = 35;
+
    // Joybus RX module stuff
    reg [5:0]   rx_n_bytes = 0;
-   reg [7:0]   rx_bytes [0:34];
+   reg [7:0]   rx_bytes [0:MAX_RX_BYTES-1];
    reg [7:0]   rx_byte;
    reg         rx_byte_ready;
    reg         rx_enabled = 0;
@@ -73,9 +76,6 @@ module top (
 
    wire        rx_enable_wire;
    assign rx_enable_wire = rx_enabled;
-
-   // expecting at most 35 bytes (1 cmd byte + 34 optional data bytes)
-   localparam MAX_RX_BYTES = 35;
 
    // Joybus TX module stuff
    reg [5:0]   tx_n_bytes;
