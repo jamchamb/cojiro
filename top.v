@@ -35,7 +35,7 @@ module top (
      STATE_DATA_CRC2 = 6,
      STATE_TX = 7,
      STATE_FORWARD_LEN = 8,
-     STATE_FORWARD = 9,
+     STATE_FORWARD_CMD = 9,
      STATE_FORWARD_RESPONSE = 10,
      STATE_PAK_INIT = 11;
    reg [3:0] state = STATE_PAK_INIT;
@@ -450,7 +450,7 @@ module top (
             uart_transmit <= 0;
 
             if (uart_fwd_sync_state == UART_SYNC_TX_LEN) begin
-               state <= STATE_FORWARD;
+               state <= STATE_FORWARD_CMD;
                buf_i <= 0;
                uart_fwd_sync_state <= UART_SYNC_MAGIC1;
             end else begin
@@ -459,7 +459,7 @@ module top (
          end
       end
 
-      else if (state == STATE_FORWARD) begin
+      else if (state == STATE_FORWARD_CMD) begin
          // Forward the command over UART
          if (uart_transmit) begin
             uart_transmit <= 0;
@@ -473,7 +473,7 @@ module top (
             buf_i <= 0;
             state <= STATE_FORWARD_RESPONSE;
          end
-      end // if (state == STATE_FORWARD)
+      end // if (state == STATE_FORWARD_CMD)
 
       else if (state == STATE_FORWARD_RESPONSE) begin
          // Forward the response over UART
