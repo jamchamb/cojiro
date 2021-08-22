@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from pylibftdi import (Device, INTERFACE_B)
+import serial
 
 # Recognized JoyBus commands
 CMD_INFO_RESET = 0xff
@@ -10,18 +10,18 @@ CMD_PAK_READ = 0x02
 CMD_PAK_WRITE = 0x03
 
 
-def sendall(ser, data):
-    n = 0
-    while n < len(data):
-        n += ser.write(data[n:])
-    #print(f'sent {data}')
-
-
 def extract_addr(packed):
     address = (packed[0] << 3) | (packed[1] >> 5)
     address *= 32
     crc = packed[1] & 0x1f
     return address, crc
+
+
+def sendall(ser, data):
+    n = 0
+    while n < len(data):
+        n += ser.write(data[n:])
+    #print(f'sent {data}')
 
 
 def sync_recv(ser, verbose=False):
@@ -73,14 +73,10 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', default=False)
     args = parser.parse_args()
 
-    with Device(interface_select=INTERFACE_B) as ser:
-        ser.baudrate = args.baudrate
-        if ser.baudrate != args.baudrate:
-            raise Exception('baud rate failed')
-
-        print(args.port)
-
-        ser.flush_input()
+    with serial.Serial(args.port, args.baudrate) as ser:
+        print(ser.name)
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
 
         while True:
             bytez, response_bytez = sync_recv(ser, args.verbose)
