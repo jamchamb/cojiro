@@ -50,6 +50,17 @@ module top (
    localparam [15:0] pad_id = 16'h 0500;
    reg [7:0]   pad_status = 8'h 01;
 
+   // "Controller pak" memory
+   reg         pak_read_en = 0;
+   reg         pak_write_en = 0;
+   reg [15:0]  pak_addr = 0;
+   reg [15:0]  pak_write_data = 0;
+   reg [15:0]  pak_read_data;
+
+   reg         pak_initialized = 0;
+   reg         pak_init_started = 0;
+   reg         pak_read_ready = 0;
+
    // Joybus RX module stuff
    reg [5:0]   rx_n_bytes = 0;
    reg [7:0]   rx_bytes [0:34];
@@ -148,17 +159,6 @@ module top (
                     .rst(datacrc_reset),
                     .clk(CLK)
                     );
-
-   // "Controller pak" memory
-   reg        pak_read_en = 0;
-   reg        pak_write_en = 0;
-   reg [15:0] pak_addr = 0;
-   reg [15:0]  pak_write_data = 0;
-   reg [15:0]  pak_read_data;
-
-   reg         pak_initialized = 0;
-   reg         pak_init_started = 0;
-   reg         pak_read_ready = 0;
 
    mempak pakmem_mod (
                       .clk(CLK),
