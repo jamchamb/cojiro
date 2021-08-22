@@ -84,25 +84,6 @@ module top (
    assign P1B1 = (tx_enabled && tx_output_bit == 0) ? 1'b 0 : 1'b z;
    assign console_input = P1B1;
 
-   `ifdef UART_FORWARD
-   // UART stuff
-   reg        uart_reset = 0;
-   reg        uart_transmit = 0;
-   reg [7:0]  uart_tx_byte;
-   wire       uart_received;
-   wire [7:0] uart_rx_byte;
-   wire       uart_is_receiving;
-   wire       uart_is_transmitting;
-   wire       uart_recv_error;
-
-   localparam [1:0]
-     UART_SYNC_MAGIC1 = 0,
-     UART_SYNC_MAGIC2 = 1,
-     UART_SYNC_RX_LEN = 2,
-     UART_SYNC_TX_LEN = 3;
-   reg [1:0]  uart_fwd_sync_state = UART_SYNC_MAGIC1;
-   `endif //  `ifdef UART_FORWARD
-
    // General TX/RX buffer index
    reg [5:0] buf_i = 0;
 
@@ -189,6 +170,23 @@ module top (
                       );
 
    `ifdef UART_FORWARD
+   // UART stuff
+   reg        uart_reset = 0;
+   reg        uart_transmit = 0;
+   reg [7:0]  uart_tx_byte;
+   wire       uart_received;
+   wire [7:0] uart_rx_byte;
+   wire       uart_is_receiving;
+   wire       uart_is_transmitting;
+   wire       uart_recv_error;
+
+   localparam [1:0]
+     UART_SYNC_MAGIC1 = 0,
+     UART_SYNC_MAGIC2 = 1,
+     UART_SYNC_RX_LEN = 2,
+     UART_SYNC_TX_LEN = 3;
+   reg [1:0]  uart_fwd_sync_state = UART_SYNC_MAGIC1;
+
    uart #(
 		  .baud_rate(1500000),                 // The baud rate in bits/s
 		  .sys_clk_freq(12000000)           // The master clock frequency
