@@ -9,7 +9,8 @@ PCF = data/icebreaker.pcf
 
 top_pad: $(PROJ).rpt $(PROJ).bin
 top_snap: top_snapstation.rpt top_snapstation.bin
-all: top_pad top_snap
+top_uart_host: top_uart_host.rpt top_uart_host.bin
+all: top_pad top_snap top_uart_host
 
 
 %.json: %.v $(ADD_SRC)
@@ -43,6 +44,9 @@ prog: $(PROJ).bin
 	iceprog $<
 
 prog_snap: top_snapstation.bin
+	iceprog $<
+
+prog_uart_host: top_uart_host.bin
 	iceprog $<
 
 sudo-prog: $(PROJ).bin

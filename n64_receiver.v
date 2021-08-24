@@ -62,6 +62,14 @@ module rx_module (
 
       else if (state == STATE_WAIT) begin
          if (rx_enabled) begin
+           `ifdef HOST_MODE
+            // controller can respond very quickly, don't wait for silence
+            state <= STATE_RECEIVING;
+              `ifdef DEBUG_WIRE
+              // go low when starting read process, high for each bit
+              read_debug <= 0;
+              `endif
+            `else
             // wait for a period of silence
             if (joy_latch) begin
                if (timeout_pulses == 5*ppu) begin
@@ -76,7 +84,8 @@ module rx_module (
                end
             end else begin
                timeout_pulses <= 0;
-            end
+            end // else: !if(joy_latch)
+            `endif
          end
       end
 
@@ -113,7 +122,7 @@ module rx_module (
                end
                timeout_pulses <= timeout_pulses + 1;
             end
-         end else begin // if (bits_read < MAX_BITS)
+         end else begin // if (rx_enabled)
             // received max number of bits, delay for stop bit
             if (timeout_pulses == 2*ppu) begin
                // get stop bit
@@ -122,7 +131,7 @@ module rx_module (
                state <= STATE_FINISHED;
             end
             timeout_pulses <= timeout_pulses + 1;
-         end
+         end // else: !if(rx_enabled)
       end // if (state == STATE_RECEIVING)
 
       else if (state == STATE_GETBIT) begin

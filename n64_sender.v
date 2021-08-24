@@ -107,10 +107,15 @@ module tx_module (
          // goes high after 2us (4 clk pulses)
          if (clk_pulses == 2*ppu) begin
             output_bit <= 1;
+            state <= STATE_FINISHED;
          end
+         // not really necessary to wait for the end timing, and
+         // in host mode we might miss the first falling edge of the response
+         /*
          else if (clk_pulses == 4*ppu - 1) begin
             state <= STATE_FINISHED;
          end
+         */
 
          clk_pulses <= clk_pulses + 1;
       end
