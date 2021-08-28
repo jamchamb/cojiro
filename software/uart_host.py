@@ -13,6 +13,16 @@ def poll_loop(pad):
         time.sleep(0.001)
 
 
+def rumble_test(pad):
+    present = pad.check_accessory_id(0x80)
+    print(f'rumble pak present: {present}')
+
+    if present:
+        pad.pak_write(0xc000, b'\x01' * 32)
+        time.sleep(1.0)
+        pad.pak_write(0xc000, b'\x00' * 32)
+
+
 def tpak_test(pad):
     present = pad.check_accessory_id(0x84)
     print(f'transfer pak present: {present}')
@@ -72,8 +82,7 @@ def main():
         if args.dump_cpak is not None:
             pad.dump_cpak(args.dump_cpak)
         elif args.rumble_test:
-            present = pad.check_accessory_id(0x80)
-            print(f'rumble pak present: {present}')
+            rumble_test(pad)
         elif args.transferpak_test:
             tpak_test(pad)
         else:
