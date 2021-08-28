@@ -3,6 +3,7 @@ import argparse
 import serial
 import time
 from controller import Controller
+from hexdump import hexdump
 
 
 def poll_loop(pad):
@@ -10,6 +11,33 @@ def poll_loop(pad):
         response = pad.poll_state()
         print(f'state: {response.hex(" ")}')
         time.sleep(0.001)
+
+
+def tpak_test(pad):
+    present = pad.check_accessory_id(0x84)
+    print(f'transfer pak present: {present}')
+
+    if not present:
+        return
+
+    # cart access mode
+    check_mode = pad.pak_read(0xb000)
+    print(f'check mode: {check_mode.hex()}')
+
+    if check_mode[31] != 0x80:
+        return
+
+    # set access mode to 1
+    pad.pak_write(0xb000, b'\x01' * 32)
+
+    # set bank to 0
+    pad.pak_write(0xa000, b'\x00' * 32)
+
+    data = pad.pak_read(0xc100) + pad.pak_read(0xc120) + pad.pak_read(0xc140)
+    hexdump(data)
+
+    # pak off
+    pad.pak_write(0xb000, b'\x00' * 32)
 
 
 def main():
@@ -47,8 +75,7 @@ def main():
             present = pad.check_accessory_id(0x80)
             print(f'rumble pak present: {present}')
         elif args.transferpak_test:
-            present = pad.check_accessory_id(0x84)
-            print(f'transfer pak present: {present}')
+            tpak_test(pad)
         else:
             poll_loop(pad)
 
