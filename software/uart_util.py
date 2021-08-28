@@ -2,10 +2,10 @@ def sendall(ser, data):
     n = 0
     while n < len(data):
         n += ser.write(data[n:])
-    #print(f'sent {data}')
 
 
 def sync_recv(ser, verbose=False):
+    """Sync on AA 55, then get command and response length bytes"""
     while True:
         # get number of bytes to receive
         sync_magic1 = ser.read(1)
@@ -45,3 +45,16 @@ def sync_recv(ser, verbose=False):
             response_bytez = b''
 
         return (bytez, response_bytez)
+
+
+def send_cmd(ser, command, verbose=False):
+    """Send length-prefixed TX buffer"""
+    if len(command) > 35:
+        # limit based on current maximum in Verilog
+        raise Exception('max TX length is 35')
+
+    len_byte = len(command).to_bytes(1, 'big')
+    sendall(ser, len_byte + command)
+
+    echo_bytez, response_bytez = sync_recv(ser, verbose)
+    return response_bytez
