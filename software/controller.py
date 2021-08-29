@@ -10,6 +10,10 @@ CMD_PAK_READ = 0x02
 CMD_PAK_WRITE = 0x03
 
 
+class BadCRCException(Exception):
+    pass
+
+
 class Controller:
 
     def __init__(self, ser, verbose=False):
@@ -20,12 +24,31 @@ class Controller:
         return send_cmd(self.ser, cmd, self.verbose)
 
     def pak_read(self, address):
+        """read a 32 byte chunk from controller pak"""
         packed_addr = pack_addr(address)
         cmd = struct.pack(
             '>B2s',
             CMD_PAK_READ,
             packed_addr)
-        return self.send_cmd(cmd)
+        response = self.send_cmd(cmd)
+
+        # Check response length
+        if len(response) != 33:
+            raise Exception(f'invalid response length {len(response)}')
+
+        crc_received = response[-1]
+        chunk = response[:32]
+        crc_calculated = data_crc_lookup(chunk)
+
+        if crc_received != crc_calculated:
+            raise BadCRCException(
+                f'CRC mismatched (received {crc_received:02x}, '
+                f'calculated {crc_calculated:02x}')
+
+        if self.verbose:
+            print(f'{address:04x} good CRC {crc_calculated:02x}')
+
+        return chunk
 
     def pak_write(self, address, data):
         if len(data) != 32:
@@ -98,21 +121,10 @@ class Controller:
             retry = False
 
             # read a 32 byte chunk from controller pak
-            response = self.pak_read(i)
-            if len(response) != 33:
+            try:
+                chunk = self.pak_read(i)
+            except BadCRCException:
                 retry = True
-                print(f'invalid response length {len(response)}')
-
-            crc_received = response[-1]
-            chunk = response[:32]
-            crc_calculated = data_crc_lookup(chunk)
-
-            if crc_received != crc_calculated:
-                retry = True
-                print(f'CRC mismatched (received {crc_received:02x}, '
-                      f'calculated {crc_calculated:02x}')
-            elif self.verbose:
-                print(f'{i:04x} good CRC {crc_calculated:02x}')
 
             if retry:
                 print(f'retrying address {i:04x}')
