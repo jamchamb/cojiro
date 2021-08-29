@@ -4,6 +4,7 @@ import serial
 import time
 from controller import Controller
 from hexdump import hexdump
+from gb_cart import GBHeader
 
 
 def poll_loop(pad):
@@ -43,11 +44,16 @@ def tpak_test(pad):
     # set bank to 0
     pad.pak_write(0xa000, b'\x00' * 32)
 
-    data = pad.pak_read(0xc100) + pad.pak_read(0xc120) + pad.pak_read(0xc140)
+    data = pad.pak_read(0xc100) + \
+        pad.pak_read(0xc120) + \
+        pad.pak_read(0xc140)
     hexdump(data)
 
     # pak off
     pad.pak_write(0xb000, b'\x00' * 32)
+
+    gb_header = GBHeader(data[:80])
+    print(gb_header.__dict__)
 
 
 def main():
