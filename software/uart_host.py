@@ -24,6 +24,24 @@ def rumble_test(pad):
         pad.pak_write(0xc000, b'\x00' * 32)
 
 
+def tpak_read(pad, address):
+    # Read from GB cart address using Transfer Pak
+    # with auto (tpak) bank switching
+    if address > 0xffff:
+        raise ValueError('address not 16-bit')
+    elif address & 0x1f != 0:
+        # TODO allow arbitrary address
+        raise ValueError('address must be multiple of 32')
+
+    # TODO count of bytes to read
+
+    # set bank to 0-3
+    bank = address // 0x4000
+    pad.pak_write(0xa000, bytes([bank]) * 32)
+
+    return pad.pak_read(0xc000 + (address % 0x4000))
+
+
 def tpak_test(pad):
     present = pad.check_accessory_id(0x84)
     print(f'transfer pak present: {present}')
@@ -41,19 +59,27 @@ def tpak_test(pad):
     # set access mode to 1
     pad.pak_write(0xb000, b'\x01' * 32)
 
-    # set bank to 0
-    pad.pak_write(0xa000, b'\x00' * 32)
+    data = tpak_read(pad, 0x100) + \
+        tpak_read(pad, 0x120) + \
+        tpak_read(pad, 0x140)
+    data = data[:80]
 
-    data = pad.pak_read(0xc100) + \
-        pad.pak_read(0xc120) + \
-        pad.pak_read(0xc140)
+    print('ROM header:')
     hexdump(data)
 
-    # pak off
+    # access mode 0 (cart off)
     pad.pak_write(0xb000, b'\x00' * 32)
 
-    gb_header = GBHeader(data[:80])
+    gb_header = GBHeader(data)
     print(gb_header.__dict__)
+
+    # hash the logo data
+    logo_check = gb_header.verify_logo(verbose=True)
+    print(f'logo check pass: {logo_check}')
+
+    # check header checksum
+    header_check = gb_header.verify_header()
+    print(f'header check pass: {header_check}')
 
 
 def main():
