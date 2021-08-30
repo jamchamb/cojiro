@@ -1,3 +1,4 @@
+import hashlib
 import struct
 
 
@@ -23,6 +24,8 @@ class GBHeader:
             data
         )
 
+        self.raw_data = data
+
         self.entry_code = unpacked[0]
         self.logo_data = unpacked[1]
 
@@ -46,3 +49,23 @@ class GBHeader:
         self.mask_rom_ver = unpacked[12]
         self.header_checksum = unpacked[13]
         self.global_checksum = unpacked[14]
+
+    def verify_logo(self, verbose=False):
+        md5 = hashlib.md5()
+        md5.update(self.logo_data)
+        logo_hash = md5.hexdigest()
+
+        if verbose:
+            print(f'logo MD5 hash: {logo_hash}')
+
+        return logo_hash == "8661ce8a0ebede95e8a131a0aa1717f6"
+
+    def verify_header(self, verbose=False):
+        hdr_chk = 0
+        for b in self.raw_data[0x34:0x4d]:
+            hdr_chk = (hdr_chk + ~b) & 0xff
+
+        if verbose:
+            print(f'calculated header checksum: {hdr_chk}')
+
+        return hdr_chk == self.header_checksum
