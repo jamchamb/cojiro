@@ -62,7 +62,17 @@ class Controller:
             packed_addr,
             data)
 
-        return self.send_cmd(cmd)
+        response = self.send_cmd(cmd)
+
+        crc_received = response[0]
+        crc_calculated = data_crc_lookup(data)
+
+        if crc_received != crc_calculated:
+            raise BadCRCException(
+                f'CRC mismatched (received {crc_received:02x}, '
+                f'calculated {crc_calculated:02x}')
+
+        return response
 
     def check_accessory_id(self, accessory_id):
         """Check if this type of accessory is connected"""
