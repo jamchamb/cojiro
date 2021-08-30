@@ -1,0 +1,2 @@
+hexdump==3.3
+pyserial==3.5
