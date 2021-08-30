@@ -24,7 +24,7 @@ class GBHeader:
             data
         )
 
-        self.raw_data = data
+        self._raw_data = data
 
         self.entry_code = unpacked[0]
         self.logo_data = unpacked[1]
@@ -42,8 +42,8 @@ class GBHeader:
         self.new_licensee_code = unpacked[5]  # may be part of title
         self.sgb_flag = unpacked[6]
         self.cartridge_type = unpacked[7]
-        self.rom_size = unpacked[8]
-        self.ram_size = unpacked[9]
+        self._rom_size = unpacked[8]
+        self._ram_size = unpacked[9]
         self.region_code = unpacked[10]
         self.old_licensee_code = unpacked[11]
         self.mask_rom_ver = unpacked[12]
@@ -62,10 +62,32 @@ class GBHeader:
 
     def verify_header(self, verbose=False):
         hdr_chk = 0
-        for b in self.raw_data[0x34:0x4d]:
+        for b in self._raw_data[0x34:0x4d]:
             hdr_chk = (hdr_chk + ~b) & 0xff
 
         if verbose:
             print(f'calculated header checksum: {hdr_chk}')
 
         return hdr_chk == self.header_checksum
+
+    def get_rom_size(self):
+        """Return ROM size in bytes"""
+        if self._rom_size > 8:
+            raise ValueError('ROM size code unknown')
+
+        return 0x8000 << self._rom_size
+
+    def get_ram_size(self):
+        if self._ram_size > 5:
+            raise ValueError('RAM size code unknown')
+
+        if self._ram_size < 2:
+            return 0
+        elif self._ram_size == 2:
+            return 0x2000
+        elif self._ram_size == 3:
+            return 0x2000 * 4
+        elif self._ram_size == 4:
+            return 0x2000 * 16
+        elif self._ram_size == 5:
+            return 0x2000 * 8

@@ -74,12 +74,15 @@ def tpak_test(pad):
     print(gb_header.__dict__)
 
     # hash the logo data
-    logo_check = gb_header.verify_logo(verbose=True)
+    logo_check = gb_header.verify_logo()
     print(f'logo check pass: {logo_check}')
 
     # check header checksum
     header_check = gb_header.verify_header()
     print(f'header check pass: {header_check}')
+
+    print(f'ROM size: {gb_header.get_rom_size():#x} bytes')
+    print(f'RAM size: {gb_header.get_ram_size():#x} bytes')
 
 
 def main():
