@@ -2,11 +2,11 @@
 
 Nintendo JoyBus device designs for the iCEBreaker FPGA development board.
 
-Features:
+### Features
 
 - Simulate a Nintendo 64 controller with ephemeral Controller Pak memory
 - Simulate a Snap Station
-- Host mode for controlling devices over USB
+- Host mode for controlling devices over USB (send/receive data through the Joy Bus connection)
   - Poll controller button states
   - Dump data from a Controller Pak
   - Use a Transfer Pak for Gameboy cartridge I/O
