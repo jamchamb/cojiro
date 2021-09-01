@@ -116,12 +116,12 @@ class Controller:
     def dump_cpak(self, cpak_filename):
         pad_type, joyport_status = self.pad_query(reset=True)
 
-        if joyport_status == 3:
-            print('pak just inserted(?), please retry')
-            return
-        elif joyport_status != 1:
+        if joyport_status & 1 == 0:
             print('no pak detected')
             return
+
+        if self.verbose and joyport_status & 2 != 0:
+            print('(pak changed)')
 
         print(f'dump controller pak to {cpak_filename}...')
 

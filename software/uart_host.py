@@ -2,6 +2,7 @@
 import argparse
 import serial
 import time
+from accessories import RumblePak
 from controller import Controller
 from hexdump import hexdump
 from gb_cart import GBHeader
@@ -15,20 +16,21 @@ def poll_loop(pad):
 
 
 def rumble_test(pad):
-    present = pad.check_accessory_id(0x80)
+    rpak = RumblePak(pad)
+    present = rpak.check_pak()
     print(f'rumble pak present: {present}')
 
     if present:
-        pad.pak_write(0xc000, b'\x01' * 32)
-        time.sleep(1.0)
-        pad.pak_write(0xc000, b'\x00' * 32)
+        rpak.set_rumble(True)
+        time.sleep(0.5)
+        rpak.set_rumble(False)
 
 
 def tpak_read(pad, address):
     # Read from GB cart address using Transfer Pak
     # with auto (tpak) bank switching
-    if address > 0xffff:
-        raise ValueError('address not 16-bit')
+    if address < 0 or address > 0xffff:
+        raise ValueError('address out of range')
     elif address & 0x1f != 0:
         # TODO allow arbitrary address
         raise ValueError('address must be multiple of 32')
@@ -96,10 +98,10 @@ def main():
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument('--dump-cpak', type=str, default=None,
                             help='file to dump cpak memory to')
-    mode_group.add_argument('--rumble-test', action='store_true',
-                            default=False)
-    mode_group.add_argument('--transferpak-test', action='store_true',
-                            default=False)
+    mode_group.add_argument('--test-rpak', action='store_true',
+                            default=False, help='Test Rumble Pak')
+    mode_group.add_argument('--test-tpak', action='store_true',
+                            default=False, help='Test Transfer Pak')
     args = parser.parse_args()
 
     with serial.Serial(args.port, args.baudrate) as ser:
@@ -116,9 +118,9 @@ def main():
 
         if args.dump_cpak is not None:
             pad.dump_cpak(args.dump_cpak)
-        elif args.rumble_test:
+        elif args.test_rpak:
             rumble_test(pad)
-        elif args.transferpak_test:
+        elif args.test_tpak:
             tpak_test(pad)
         else:
             poll_loop(pad)
