@@ -34,6 +34,9 @@ class GBHeader:
         self.manufacturer_code = unpacked[3]
         self.cgb_flag = unpacked[4]
 
+        # full 16 byte title region
+        self.title_max = data[52:68]
+
         if self.cgb_flag not in [0x80, 0xc0]:
             self.title += self.manufacturer_code + bytes([self.cgb_flag])
             self.manufacturer_code = None
@@ -49,6 +52,9 @@ class GBHeader:
         self.mask_rom_ver = unpacked[12]
         self.header_checksum = unpacked[13]
         self.global_checksum = unpacked[14]
+
+    def title_guess(self):
+        return self.title_max.split(b'\x00')[0]
 
     def verify_logo(self, verbose=False):
         md5 = hashlib.md5()

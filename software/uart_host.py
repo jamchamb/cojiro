@@ -26,8 +26,8 @@ def rumble_test(pad):
         rpak.set_rumble(False)
 
 
-def tpak_test(pad):
-    tpak = TransferPak(pad, verbose=True)
+def tpak_test(pad, verbose=False):
+    tpak = TransferPak(pad, verbose)
     present = tpak.check_pak()
     print(f'transfer pak present: {present}')
 
@@ -48,13 +48,13 @@ def tpak_test(pad):
         tpak.cart_read(0x140)
     data = data[:80]
 
+    tpak.cart_enable(False)
+
     print('ROM header:')
     hexdump(data)
 
-    tpak.cart_enable(False)
-
     gb_header = GBHeader(data)
-    print(gb_header.__dict__)
+    print(f'Raw title: {gb_header.title_guess()}')
 
     # hash the logo data
     logo_check = gb_header.verify_logo()
@@ -66,6 +66,9 @@ def tpak_test(pad):
 
     print(f'ROM size: {gb_header.get_rom_size():#x} bytes')
     print(f'RAM size: {gb_header.get_ram_size():#x} bytes')
+
+    if verbose:
+        print(gb_header.__dict__)
 
 
 def main():
@@ -86,7 +89,7 @@ def main():
     args = parser.parse_args()
 
     with serial.Serial(args.port, args.baudrate) as ser:
-        print(ser.name)
+        print(f'Using port: {ser.name}')
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 
@@ -102,7 +105,7 @@ def main():
         elif args.test_rpak:
             rumble_test(pad)
         elif args.test_tpak:
-            tpak_test(pad)
+            tpak_test(pad, args.verbose)
         else:
             poll_loop(pad)
 
