@@ -2,7 +2,7 @@
 import argparse
 import serial
 import time
-from accessories import RumblePak
+from accessories import RumblePak, TransferPak
 from controller import Controller
 from hexdump import hexdump
 from gb_cart import GBHeader
@@ -26,51 +26,32 @@ def rumble_test(pad):
         rpak.set_rumble(False)
 
 
-def tpak_read(pad, address):
-    # Read from GB cart address using Transfer Pak
-    # with auto (tpak) bank switching
-    if address < 0 or address > 0xffff:
-        raise ValueError('address out of range')
-    elif address & 0x1f != 0:
-        # TODO allow arbitrary address
-        raise ValueError('address must be multiple of 32')
-
-    # TODO count of bytes to read
-
-    # set bank to 0-3
-    bank = address // 0x4000
-    pad.pak_write(0xa000, bytes([bank]) * 32)
-
-    return pad.pak_read(0xc000 + (address % 0x4000))
-
-
 def tpak_test(pad):
-    present = pad.check_accessory_id(0x84)
+    tpak = TransferPak(pad, verbose=True)
+    present = tpak.check_pak()
     print(f'transfer pak present: {present}')
 
     if not present:
         return
 
     # cart access mode
-    check_mode = pad.pak_read(0xb000)
-    print(f'check mode: {check_mode.hex()}')
-
-    if check_mode[31] != 0x80:
+    cart_present = tpak.cart_present()
+    if not cart_present:
+        print('no cart present')
         return
 
     # set access mode to 1
-    pad.pak_write(0xb000, b'\x01' * 32)
+    tpak.cart_enable(True)
 
-    data = tpak_read(pad, 0x100) + \
-        tpak_read(pad, 0x120) + \
-        tpak_read(pad, 0x140)
+    data = tpak.cart_read(0x100) + \
+        tpak.cart_read(0x120) + \
+        tpak.cart_read(0x140)
     data = data[:80]
 
     print('ROM header:')
     hexdump(data)
 
-    # access mode 0 (cart off)
-    pad.pak_write(0xb000, b'\x00' * 32)
+    tpak.cart_enable(False)
 
     gb_header = GBHeader(data)
     print(gb_header.__dict__)

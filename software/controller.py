@@ -76,6 +76,13 @@ class Controller:
 
     def check_accessory_id(self, accessory_id):
         """Check if this type of accessory is connected"""
+        pad_type, joyport_status = self.pad_query()
+
+        if joyport_status & 1 == 0:
+            if self.verbose:
+                print('no accessory pak detected')
+            return False
+
         self.pak_write(0x8000, b'\xfe' * 32)
         reset_response = self.pak_read(0x8000)
 
@@ -87,7 +94,7 @@ class Controller:
         response = self.pak_read(0x8000)
 
         if self.verbose:
-            print(f'accessory ID check: {response.hex()}')
+            print(f'accessory ID check for {acc_id_byte.hex()}: {response.hex()}')
 
         if response[31] == accessory_id:
             return True
