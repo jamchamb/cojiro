@@ -6,7 +6,10 @@ Features:
 
 - Simulate a Nintendo 64 controller with ephemeral Controller Pak memory
 - Simulate a Snap Station
-- Host mode for controlling devices over UART, e.g. polling controller button states or dumping data from a Controller Pak
+- Host mode for controlling devices over USB
+  - Poll controller button states
+  - Dump data from a Controller Pak
+  - Use a Transfer Pak for Gameboy cartridge I/O
 
 ## Setup
 
