@@ -6,6 +6,7 @@ from accessories import RumblePak, TransferPak
 from controller import Controller
 from hexdump import hexdump
 from gb_cart import GBHeader
+from tqdm import tqdm
 
 
 def poll_loop(pad):
@@ -26,7 +27,7 @@ def rumble_test(pad):
         rpak.set_rumble(False)
 
 
-def tpak_test(pad, verbose=False):
+def tpak_test(pad, rom_filename=None, ram_filename=None, verbose=False):
     tpak = TransferPak(pad, verbose)
     present = tpak.check_pak()
     print(f'transfer pak present: {present}')
@@ -70,6 +71,83 @@ def tpak_test(pad, verbose=False):
     if verbose:
         print(gb_header.__dict__)
 
+    if rom_filename is not None:
+        tpak_dump_rom(tpak, gb_header, rom_filename)
+
+    if ram_filename is not None:
+        tpak_dump_ram(tpak, gb_header, ram_filename)
+
+
+def tpak_dump_rom(tpak, gb_header, rom_filename):
+    # Only implemented MBC5 for now
+    if gb_header.cartridge_type < 0x19 or gb_header.cartridge_type > 0x1e:
+        print('ROM dumping is only implemented for MBC5 here')
+        return
+
+    rom_file = open(rom_filename, 'wb')
+
+    n_rom_banks = gb_header.get_rom_size() // 0x4000
+    print(f'Dumping {n_rom_banks} ROM banks to {rom_filename}...')
+
+    # progress bar
+    progress = tqdm(total=gb_header.get_rom_size())
+
+    tpak.cart_enable(True)
+    for rom_bank in range(n_rom_banks):
+        # Low 8 bits of ROM bank number
+        low_n = rom_bank & 0xff
+        tpak.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
+
+        # High bit of ROM bank number
+        high_n = (rom_bank >> 8) & 1
+        tpak.cart_write(0x3000, high_n.to_bytes(1, 'big') * 32)
+
+        # Switched banks at 4000-7fff, MBC5 can switch in bank 0 too
+        for addr in range(0x4000, 0x8000, 32):
+            chunk = tpak.cart_read(addr)
+            rom_file.write(chunk)
+            progress.update(32)
+
+    tpak.cart_enable(False)
+    progress.close()
+    rom_file.close()
+
+
+def tpak_dump_ram(tpak, gb_header, ram_filename):
+    # Only implemented MBC5 for now
+    if gb_header.cartridge_type < 0x19 or gb_header.cartridge_type > 0x1e:
+        print('ROM dumping is only implemented for MBC5 here')
+        return
+
+    # Dump RAM banks
+    ram_file = open(ram_filename, 'wb')
+
+    n_ram_banks = gb_header.get_ram_size() // 0x2000
+    print(f'Dumping {n_ram_banks} RAM banks to {ram_filename}...')
+
+    progress = tqdm(total=gb_header.get_ram_size())
+
+    tpak.cart_enable(True)
+
+    # Enable RAM
+    tpak.cart_write(0, b'\x0a' * 32)
+
+    for ram_bank in range(n_ram_banks):
+        # Set RAM bank number
+        tpak.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+
+        for addr in range(0xa000, 0xc000, 32):
+            chunk = tpak.cart_read(addr)
+            ram_file.write(chunk)
+            progress.update(32)
+
+    # Disable RAM
+    tpak.cart_write(0, b'\x00' * 32)
+
+    tpak.cart_enable(False)
+    progress.close()
+    ram_file.close()
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -86,6 +164,10 @@ def main():
                             default=False, help='Test Rumble Pak')
     mode_group.add_argument('--test-tpak', action='store_true',
                             default=False, help='Test Transfer Pak')
+    mode_group.add_argument('--dump-tpak-rom', type=str,
+                            default=None, help='file to dump ROM to')
+    mode_group.add_argument('--dump-tpak-ram', type=str,
+                            default=None, help='file to dump RAM to')
     args = parser.parse_args()
 
     with serial.Serial(args.port, args.baudrate) as ser:
@@ -105,7 +187,13 @@ def main():
         elif args.test_rpak:
             rumble_test(pad)
         elif args.test_tpak:
-            tpak_test(pad, args.verbose)
+            tpak_test(pad, verbose=args.verbose)
+        elif args.dump_tpak_rom:
+            tpak_test(pad, rom_filename=args.dump_tpak_rom,
+                      verbose=args.verbose)
+        elif args.dump_tpak_ram:
+            tpak_test(pad, ram_filename=args.dump_tpak_ram,
+                      verbose=args.verbose)
         else:
             poll_loop(pad)
 
