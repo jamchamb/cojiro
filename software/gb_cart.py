@@ -97,3 +97,23 @@ class GBHeader:
             return 0x2000 * 16
         elif self._ram_size == 5:
             return 0x2000 * 8
+
+    def get_mbc_type(self):
+        if self.cartridge_type in [0x0, 0x8, 0x9]:
+            return 'NO_MBC'
+        elif self.cartridge_type in range(0x1, 0x3 + 1):
+            return 'MBC1'
+        elif self.cartridge_type in range(0x5, 0x6 + 1):
+            return 'MBC2'
+        elif self.cartridge_type in range(0xb, 0xd + 1):
+            return 'MMM01'
+        elif self.cartridge_type in range(0xf, 0x13 + 1):
+            return 'MBC3'
+        elif self.cartridge_type in range(0x19, 0x1e + 1):
+            return 'MBC5'
+        elif self.cartridge_type == 0x20:
+            return 'MBC6'
+        elif self.cartridge_type == 0x22:
+            return 'MBC7'
+
+        return None
