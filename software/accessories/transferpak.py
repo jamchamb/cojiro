@@ -1,38 +1,9 @@
+from .accessory import Accessory
 from gb_cart import GBHeader
 from tqdm import tqdm
 
 GB_ROM_BANK_SZ = 0x4000
 GB_RAM_BANK_SZ = 0x2000
-
-
-class Accessory:
-
-    accessory_id = None
-
-    def __init__(self, pad):
-        self.pad = pad
-
-    def check_pak(self):
-        if self.accessory_id is None:
-            raise ValueError('Accessory ID not defined')
-
-        return self.pad.check_accessory_id(self.accessory_id)
-
-
-class RumblePak(Accessory):
-
-    accessory_id = 0x80
-
-    def __init__(self, pad):
-        super().__init__(pad)
-
-    def set_rumble(self, on):
-        if on:
-            data = b'\x01' * 32
-        else:
-            data = b'\x00' * 32
-
-        self.pad.pak_write(0xc000, data)
 
 
 class TransferPak(Accessory):

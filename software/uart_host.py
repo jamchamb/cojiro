@@ -2,11 +2,10 @@
 import argparse
 import serial
 import time
-from accessories import RumblePak, TransferPak
+from accessories.rumblepak import RumblePak
+from accessories.transferpak import TransferPak
 from controller import Controller
 from hexdump import hexdump
-from gb_cart import GBHeader
-from tqdm import tqdm
 
 
 def poll_loop(pad):
