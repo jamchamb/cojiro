@@ -154,6 +154,10 @@ class TransferPak(Accessory):
             # Low 5 bits
             low_n = rom_bank & 0x1f
             self.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
+        elif mbc_type == 'MBC3':
+            # 7 bit ROM bank number
+            low_n = rom_bank & 0x7f
+            self.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
         elif mbc_type == 'MBC5':
             # Low 8 bits of ROM bank number
             low_n = rom_bank & 0xff
@@ -198,6 +202,10 @@ class TransferPak(Accessory):
             # Select RAM banking mode
             self.cart_write(0x6000, b'\x01' * 32)
 
+            # Set 2 bit RAM bank number
+            ram_bank &= 3
+            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+        elif mbc_type == 'MBC3':
             # Set 2 bit RAM bank number
             ram_bank &= 3
             self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
