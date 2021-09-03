@@ -148,6 +148,9 @@ class TransferPak(Accessory):
             if rom_bank > 0x1f:
                 raise NotImplementedError('MBC1 handling 0x20, 0x40, 0x60 not implemented')
 
+            # Select simple ROM banking mode
+            self.cart_write(0x6000, b'\x00' * 32)
+
             # Low 5 bits
             low_n = rom_bank & 0x1f
             self.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
@@ -170,7 +173,8 @@ class TransferPak(Accessory):
             chunks = []
             for addr in range(0x0000, 0x4000, 32):
                 chunks.append(self.cart_read(addr))
-                progress.update(32)
+                if progress is not None:
+                    progress.update(32)
             return b''.join(chunks)
         else:
             # Switched banks at 4000-7fff
@@ -180,8 +184,40 @@ class TransferPak(Accessory):
             chunks = []
             for addr in range(0x4000, 0x8000, 32):
                 chunks.append(self.cart_read(addr))
-                progress.update(32)
+                if progress is not None:
+                    progress.update(32)
             return b''.join(chunks)
+
+    def switch_ram_bank(self, ram_bank):
+        mbc_type = self.gb_header.get_mbc_type()
+
+        if mbc_type == 'NO_MBC':
+            if ram_bank != 0:
+                raise ValueError('Only one RAM bank with no MBC')
+        elif mbc_type == 'MBC1':
+            # Select RAM banking mode
+            self.cart_write(0x6000, b'\x01' * 32)
+
+            # Set 2 bit RAM bank number
+            ram_bank &= 3
+            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+        elif mbc_type == 'MBC5':
+            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+        else:
+            raise NotImplementedError()
+
+    def read_ram_bank(self, ram_bank, progress=None):
+        """Read full RAM bank from cartridge"""
+
+        self.switch_ram_bank(ram_bank)
+
+        chunks = []
+        for addr in range(0xa000, 0xc000, 32):
+            chunks.append(self.cart_read(addr))
+            if progress is not None:
+                progress.update(32)
+
+        return b''.join(chunks)
 
     def dump_rom(self, rom_filename):
         """Dump cartridge ROM banks to file"""
@@ -220,33 +256,34 @@ class TransferPak(Accessory):
     def dump_ram(self, ram_filename):
         """Dump cartridge RAM banks to file"""
 
-        # Only implemented MBC5 for now
-        if self.gb_header.get_mbc_type() != 'MBC5':
-            print('RAM dumping is only implemented for MBC5 here')
-            return
-
         ram_size = self.gb_header.get_ram_size()
-
         if ram_size == 0:
             print('No RAM to dump')
             return
 
+        # Check MBC type is supported
+        try:
+            self.switch_ram_bank(0)
+        except NotImplementedError:
+            print('RAM bank switching for MBC type not implemented')
+            return
+        except Exception:
+            # Skip cart power exception
+            pass
+
         ram_file = open(ram_filename, 'wb')
         n_ram_banks = ram_size // GB_RAM_BANK_SZ
         print(f'Dumping {n_ram_banks} RAM banks to {ram_filename}...')
+
+        # progress bar
         progress = tqdm(total=ram_size)
 
         self.cart_enable(True)
         self.cart_enable_ram(True)
 
         for ram_bank in range(n_ram_banks):
-            # Set RAM bank number
-            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
-
-            for addr in range(0xa000, 0xc000, 32):
-                chunk = self.cart_read(addr)
-                ram_file.write(chunk)
-                progress.update(32)
+            ram_data = self.read_ram_bank(ram_bank, progress=progress)
+            ram_file.write(ram_data)
 
         self.cart_enable_ram(False)
         self.cart_enable(False)
