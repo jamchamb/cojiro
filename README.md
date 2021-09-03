@@ -82,24 +82,28 @@ controller as if it were the console. See `software/uart_host.py`.
 #### Example of dumping Controller Pak memory
 
 ```console
-$ ./uart_host.py /dev/ttyUSB1 --dump-cpak cpak_joytech3.bin
-/dev/ttyUSB1
+$ ./uart_host.py /dev/ttyUSB1 --dump-cpak cpak_gray.bin
+Using port: /dev/ttyUSB1
 Pad type: 0005, joyport status: 01
-dump controller pak to cpak_joytech3.bin...
-0000: 00000000000000000000000000fefefefefefefefefefefefe00000000000000
-0020: 0015000000006bb50039161600000000000000000000000000010100831a7cd8
-0040: 0000000000000000000000000000000000000000000000000000000000000000
-0060: 0015000000006bb50039161600000000000000000000000000010100831a7cd8
-0080: 0015000000006bb50039161600000000000000000000000000010100831a7cd8
-00a0: 0000000000000000000000000000000000000000000000000000000000000000
-00c0: 0015000000006bb50039161600000000000000000000000000010100831a7cd8
-...
+dump controller pak to cpak_gray.bin...
+100%|███████████████████████████████████████████████| 1024/1024 [00:16<00:00, 62.55it/s]
+$ hexdump cpak_gray.bin | head
+000000 81 fe fd fc fb fa f9 f8 00 fe fd fc 08 08 08 08  >................<
+000010 ef ee ed ec 00 00 00 15 10 ee ed ec f5 00 00 f4  >................<
+000020 ff ff ff ff 04 bc 62 75 05 4c 46 f2 07 87 27 07  >......bu.LF...'.<
+000030 00 00 00 00 4f 4b 4b 0a 00 01 01 00 7d 51 82 a1  >....OKK.....}Q..<
+000040 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  >................<
+*
+000060 ff ff ff ff 04 bc 62 75 05 4c 46 f2 07 87 27 07  >......bu.LF...'.<
+000070 00 00 00 00 4f 4b 4b 0a 00 01 01 00 7d 51 82 a1  >....OKK.....}Q..<
+000080 ff ff ff ff 04 bc 62 75 05 4c 46 f2 07 87 27 07  >......bu.LF...'.<
+000090 00 00 00 00 4f 4b 4b 0a 00 01 01 00 7d 51 82 a1  >....OKK.....}Q..<
 ```
 
 #### Example of dumping Game Boy cartridge RAM
 
 ```console
-$ ./uart_host.py /dev/ttyUSB1 --dump-tpak-ram /tmp/pokemon_blue.sav
+$ ./uart_host.py /dev/ttyUSB1 --dump-tpak-ram pokemon_blue.sav
 Using port: /dev/ttyUSB1
 Pad type: 0005, joyport status: 01
 transfer pak present: True
@@ -113,6 +117,6 @@ Raw title: b'POKEMON BLUE'
 MBC type: MBC3
 ROM size: 0x100000 bytes
 RAM size: 0x8000 bytes
-Dumping 4 RAM banks to /tmp/pokemon_blue.sav...
+Dumping 4 RAM banks to pokemon_blue.sav...
 100%|███████████████████████████████████████████| 32768/32768 [00:16<00:00, 1968.87it/s]
 ```

@@ -1,6 +1,7 @@
 import struct
 from uart_util import send_cmd
 from crc_util import (data_crc_lookup, pack_addr)
+from tqdm import tqdm
 
 # Recognized JoyBus commands
 CMD_INFO_RESET = 0xff
@@ -131,7 +132,7 @@ class Controller:
 
         test_file = open(cpak_filename, 'wb')
 
-        for i in range(0, 0x8000, 32):
+        for i in tqdm(range(0, 0x8000, 32)):
             retry = False
 
             # read a 32 byte chunk from controller pak
@@ -141,10 +142,9 @@ class Controller:
                 retry = True
 
             if retry:
-                print(f'retrying address {i:04x}')
+                print(f'bad CRC, retrying address {i:04x}')
                 i -= 32
             else:
                 test_file.write(chunk)
-                print(f'{i:04x}: {chunk.hex()}')
 
         test_file.close()
