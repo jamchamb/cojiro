@@ -79,7 +79,7 @@ With this design the iCEBreaker acts as a UART bridge between a host computer
 and a Joy Bus device. This allows the host to send commands to a device such as an N64
 controller as if it were the console. See `software/uart_host.py`.
 
-Example of dumping Controller Pak memory:
+#### Example of dumping Controller Pak memory
 
 ```console
 $ ./uart_host.py /dev/ttyUSB1 --dump-cpak cpak_joytech3.bin
@@ -94,4 +94,25 @@ dump controller pak to cpak_joytech3.bin...
 00a0: 0000000000000000000000000000000000000000000000000000000000000000
 00c0: 0015000000006bb50039161600000000000000000000000000010100831a7cd8
 ...
+```
+
+#### Example of dumping Game Boy cartridge RAM
+
+```console
+$ ./uart_host.py /dev/ttyUSB1 --dump-tpak-ram /tmp/pokemon_blue.sav
+Using port: /dev/ttyUSB1
+Pad type: 0005, joyport status: 01
+transfer pak present: True
+ROM header:
+00000000: 00 C3 50 01 CE ED 66 66  CC 0D 00 0B 03 73 00 83  ..P...ff.....s..
+00000010: 00 0C 00 0D 00 08 11 1F  88 89 00 0E DC CC 6E E6  ..............n.
+00000020: DD DD D9 99 BB BB 67 63  6E 0E EC CC DD DC 99 9F  ......gcn.......
+00000030: BB B9 33 3E 50 4F 4B 45  4D 4F 4E 20 42 4C 55 45  ..3>POKEMON BLUE
+00000040: 00 00 00 00 30 31 03 13  05 03 01 33 00 D3 9D 0A  ....01.....3....
+Raw title: b'POKEMON BLUE'
+MBC type: MBC3
+ROM size: 0x100000 bytes
+RAM size: 0x8000 bytes
+Dumping 4 RAM banks to /tmp/pokemon_blue.sav...
+100%|███████████████████████████████████████████| 32768/32768 [00:16<00:00, 1968.87it/s]
 ```
