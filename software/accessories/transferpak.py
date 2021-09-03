@@ -63,13 +63,8 @@ class TransferPak(Accessory):
 
     def switch_tpak_bank(self, bank):
         if self.last_tpak_bank != bank:
-            if self.verbose:
-                print(f'switching to address bank {bank}')
-
             self.last_tpak_bank = bank
             self.pad.pak_write(0xa000, bytes([bank]) * 32)
-        elif self.verbose:
-            print(f'skip redundant bank switch to bank {bank}')
 
     def cart_read(self, address):
         """Read from GB cart address"""

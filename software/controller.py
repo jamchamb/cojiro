@@ -45,9 +45,6 @@ class Controller:
                 f'CRC mismatched (received {crc_received:02x}, '
                 f'calculated {crc_calculated:02x}')
 
-        if self.verbose:
-            print(f'{address:04x} good CRC {crc_calculated:02x}')
-
         return chunk
 
     def pak_write(self, address, data):
