@@ -49,7 +49,7 @@ $ make prog_snap
 
 For the Nintendo 64 cable, buy a controller extension cord and cut it in half. One end can be used to connect the iCEBreaker to the console, the other end can be used to receive a controller. Attach the ground line to a ground on PMOD1B, data line to pin P1B1, and place a pull-up resistor between the 3.3V power line and the data line (I used a 330 Ohm resistor here). When receiving a controller, connect a 3.3V out from the iCEBreaker to the power line.
 
-![Example cable setup](https://jamchamb.net/assets/img/snap-station/n64_controller_breakout.jpg)
+<img src="https://jamchamb.net/assets/img/snap-station/n64_controller_breakout.jpg" width="66%">
 
 
 ## Designs
@@ -100,7 +100,9 @@ $ hexdump cpak_gray.bin | head
 000090 00 00 00 00 4f 4b 4b 0a 00 01 01 00 7d 51 82 a1  >....OKK.....}Q..<
 ```
 
-#### Example of dumping Game Boy cartridge RAM
+#### Example of dumping Game Boy cartridge RAM with a Transfer Pak
+
+<img src="https://jamchamb.net/assets/img/projects/cojiro/uart_host_mode.jpg" width="66%">
 
 ```console
 $ ./uart_host.py /dev/ttyUSB1 --dump-tpak-ram pokemon_blue.sav
