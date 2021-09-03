@@ -55,11 +55,11 @@ class TransferPak(Accessory):
             raise Exception('Cartridge has no RAM')
 
         if enable:
-            data = b'\x0a' * 32
+            data = b'\x0a'
         else:
-            data = b'\x00' * 32
+            data = b'\x00'
 
-        self.cart_write(0, data)
+        self.cart_write_fill(0, data)
 
     def switch_tpak_bank(self, bank):
         if self.last_tpak_bank != bank:
@@ -112,6 +112,17 @@ class TransferPak(Accessory):
         self.switch_tpak_bank(tpak_bank)
         return self.pad.pak_write(tpak_addr, data)
 
+    def cart_write_fill(self, address, byte):
+        """Write repeating byte to GB cart address"""
+        if type(byte) is int:
+            byte = byte.to_bytes(1, 'big')
+        elif type(byte) is not bytes:
+            raise ValueError('must be int or byte')
+        elif len(byte) != 1:
+            raise ValueError('must be one byte')
+
+        self.cart_write(address, byte * 32)
+
     def load_rom_header(self, verify=True):
         data = self.cart_read(0x100) + \
             self.cart_read(0x120) + \
@@ -149,23 +160,23 @@ class TransferPak(Accessory):
                 raise NotImplementedError('MBC1 handling 0x20, 0x40, 0x60 not implemented')
 
             # Select simple ROM banking mode
-            self.cart_write(0x6000, b'\x00' * 32)
+            self.cart_write_fill(0x6000, b'\x00')
 
             # Low 5 bits
             low_n = rom_bank & 0x1f
-            self.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x2000, low_n)
         elif mbc_type == 'MBC3':
             # 7 bit ROM bank number
             low_n = rom_bank & 0x7f
-            self.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x2000, low_n)
         elif mbc_type == 'MBC5':
             # Low 8 bits of ROM bank number
             low_n = rom_bank & 0xff
-            self.cart_write(0x2000, low_n.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x2000, low_n)
 
             # High bit of ROM bank number
             high_n = (rom_bank >> 8) & 1
-            self.cart_write(0x3000, high_n.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x3000, high_n)
         else:
             raise NotImplementedError('Unsupported MBC type {mbc_type}')
 
@@ -200,17 +211,17 @@ class TransferPak(Accessory):
                 raise ValueError('Only one RAM bank with no MBC')
         elif mbc_type == 'MBC1':
             # Select RAM banking mode
-            self.cart_write(0x6000, b'\x01' * 32)
+            self.cart_write_fill(0x6000, b'\x01')
 
             # Set 2 bit RAM bank number
             ram_bank &= 3
-            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x4000, ram_bank)
         elif mbc_type == 'MBC3':
             # Set 2 bit RAM bank number
             ram_bank &= 3
-            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x4000, ram_bank)
         elif mbc_type == 'MBC5':
-            self.cart_write(0x4000, ram_bank.to_bytes(1, 'big') * 32)
+            self.cart_write_fill(0x4000, ram_bank)
         else:
             raise NotImplementedError()
 
