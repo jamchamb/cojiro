@@ -2,10 +2,12 @@
 
 Nintendo JoyBus device designs for the iCEBreaker FPGA development board.
 
+<img src="https://jamchamb.net/assets/img/snap-station/tv_setup2.jpg" width="66%">
+
 ### Features
 
 - Simulate a Nintendo 64 controller with ephemeral Controller Pak memory
-- Simulate a Snap Station
+- Simulate a Pokémon Snap Station
 - Host mode for controlling devices over USB (send/receive data through the Joy Bus connection)
   - Poll controller button states
   - Dump data from a Controller Pak
@@ -20,7 +22,7 @@ Clone repository and submodules:
 ```console
 $ git clone https://github.com/jamchamb/cojiro.git
 $ cd cojiro
-$ git submodulate update --init
+$ git submodule update --init
 ```
 
 Build and flash the basic N64 controller design:
@@ -63,7 +65,7 @@ Using the SPI flash to persist the pak data is a to-do.
 
 ### Snap Station
 
-Mimics the Snap Station protocol used by Pokemon Snap and Pokemon Stadium.
+Implements the Snap Station protocol used by Pokémon Snap and Pokémon Stadium.
 See <https://jamchamb.net/2021/08/17/snap-station.html> for an overview.
 
 Press button 1 to advance the state of the Snap Station.
@@ -72,6 +74,8 @@ Press button 1 to advance the state of the Snap Station.
 2. Press Print in the Gallery menu.
 3. After the "Now Saving..." message appears, reset the console.
 4. Press BTN1 to advance through the photo display until all 16 photos are displayed.
+
+See [here](https://twitter.com/jamchamb_/status/1507439248684765187) for a video demo.
 
 ### Host mode UART control
 
